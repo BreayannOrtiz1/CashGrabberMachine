@@ -6,22 +6,22 @@ import time
 
 countdownValue = 15  # Default value
 running = False
-sleep_time = 100    #Sleep time between states
+sleep_time = 200    #Sleep time between states
 debugTime = 300
 
 
 # PINS ASSIGNMENT
 
-displayUnidadesPins = [19,20]  # Pins for display 7 seg
-displayDecenasPins = [18,16]  # 12
+displayUnidadesPins = [11,12,13,14]  # Pins for display 7 seg
+displayDecenasPins = [1,2,7,6]  # 12
 pinsObjectsU = []  #List for storange pin objects
 pinsObjectsD = []
-pinTurbine = 10
-pinExtractor = 11
-pinLigth = 12
+pinTurbine = 17
+pinExtractor = 18
+pinLigth = 19
 
-pinDoorSen = 13
-pinButton = 14
+pinDoorSen = 4
+pinButton = 5
 
 #FUNCTIONS
 
@@ -29,11 +29,17 @@ def setupDisplayU(pins):
     for pin in pins:
         Pin_obj = machine.Pin(pin, machine.Pin.OUT)
         pinsObjectsU.append(Pin_obj)
+    for pin in pinsObjectsU:
+        pin.value(0)
+        
 
 def setupDisplayD(pins):
     for pin in pins:
         Pin_obj = machine.Pin(pin, machine.Pin.OUT)
         pinsObjectsD.append(Pin_obj)
+    for pin in pinsObjectsD:
+        pin.value(0)
+    
 
 def setupOutput(pin):
     objReturn = machine.Pin(pin, machine.Pin.OUT)
@@ -126,35 +132,34 @@ class StateMachine:
         self.turbine.value(0)
         self.extractor.value(0)
         self.ligth.value(1)
-
-        time.sleep_ms(sleep_time)
         
         self.state = 'WAITING'  # Cambia al siguiente estado
 
     def state2(self):   #-------------------------------------------PLAYING
         print("WAITING...")
-        print("Button: " + str(self.button.value()))
-        print("Door Sensor: " + str(self.doorSen.value()))
-        time.sleep_ms(debugTime)
+        #print("Button: " + str(self.button.value()))
+        #print("Door Sensor: " + str(self.doorSen.value()))
 
         if( (self.button.value() == 0) and (self.doorSen.value()==1) ):
             self.state = 'PLAYING'
+            print("PLAYING")
+            self.turbine.value(1)
+            self.extractor.value(1)
             self.startT = time.ticks_ms() # get millisecond counter
 
     def state3(self):   #-------------------------------------------ERROR
-        print("PLAYING")
-        self.turbine.value(1)
-        self.extractor.value(1)
         
         if( (time.ticks_diff(time.ticks_ms(), self.startT)) >= 1000 ):
             displayNumber(displayDecenasPins, displayUnidadesPins, self.countDown)
             self.startT = time.ticks_ms() # get millisecond counter
             self.countDown=self.countDown-1
 
-        if( self.doorSen.value() == 0 or self.countDown == 0):
+        if( self.doorSen.value() == 0 or self.countDown < 0):
+            time.sleep_ms(1)
             self.state = 'SETTINGENV'
             self.countDown = countdownValue
         
+
         
 maquina = StateMachine() 
 maquina.run()             
