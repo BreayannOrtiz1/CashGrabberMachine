@@ -1,0 +1,53 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Load main.py",
+            "type": "shell",
+            "command": "ampy",
+            "args": [
+                "--port",
+                "/dev/ttyUSB0",
+                "put",
+                "main.py"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Load boot.py",
+            "type": "shell",
+            "command": "ampy",
+            "args": [
+                "--port",
+                "/dev/ttyUSB0",
+                "put",
+                "boot.py"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Load_Lib",
+            "type": "shell",
+            "command": "ampy",
+            "args": [
+                "--port",
+                "/dev/ttyUSB0",
+                "put",
+                "lib"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}
