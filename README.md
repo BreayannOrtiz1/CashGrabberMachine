@@ -1,36 +1,63 @@
-1. Global Variables:
+# Proyecto de Control de Dispositivo con Máquina de Estados
 
-countdownValue: The default countdown value, set to 31.
-running: A flag to indicate if the countdown is running.
-sleep_time: The time (in milliseconds) to sleep between states.
-debugTime: A time value used for debugging purposes.
-2. Pins Assignment:
+Este proyecto implementa una máquina de estados para controlar un dispositivo con un sistema de cuenta regresiva, turbina, extractor y luz. A continuación se detalla la funcionalidad del código.
 
-displayUnidadesPins: The pins used for the units display.
-displayDecenasPins: The pins used for the tens display.
-displayDecenasPins_ctl: The control pin for the tens display.
-pinsObjectsU and pinsObjectsD: Lists to store the pin objects for the units and tens displays, respectively.
-pinsObjectsD_ctl: A list to store the control pin object for the tens display.
-pinTurbine, pinExtractor, and pinLigth: The pins used for the turbine, extractor, and light, respectively.
-pinDoorSen and pinButton: The pins used for the door sensor and button, respectively.
-3. Functions:
+---
 
-setupDisplayU(pins): Sets up the pins for the units display and stores the pin objects in the pinsObjectsU list.
-setupDisplayD(pins): Sets up the pins for the tens display, including the control pin, and stores the pin objects in the pinsObjectsD and pinsObjectsD_ctl lists.
-setupOutput(pin): Sets up a pin as an output and returns the pin object.
-setupInput(btn_pin): Sets up a pin as an input with a pull-up resistor and returns the pin object.
-displayNumber(displayTensPins, displayUnitsPins, number): Displays the given number on the units and tens displays.
-4. State Machine:
+## 1. Variables Globales
 
-StateMachine class:
-__init__(self): Initializes the state machine with the initial state set to 'START'.
-run(self): Runs the state machine by calling the appropriate state function based on the current state.
-state0(self): The 'START' state, which sets up the displays, outputs, and inputs.
-state1(self): The 'SETTINGENV' state, which displays the countdown value and sets the initial state of the turbine, extractor, and light.
-state2(self): The 'WAITING' state, which checks the button and door sensor inputs and transitions to the 'PLAYING' state if the conditions are met.
-state3(self): The 'PLAYING' state, which updates the countdown display, decrements the countdown value, and transitions back to the 'SETTINGENV' state when the countdown reaches 0 or the door sensor is triggered.
-5. Pin Configuration:
+- **`countdownValue`**: Valor de cuenta regresiva por defecto, establecido en 31.
+- **`running`**: Indicador booleano para saber si la cuenta regresiva está activa.
+- **`sleep_time`**: Tiempo de espera (en milisegundos) entre cambios de estado.
+- **`debugTime`**: Valor de tiempo usado para propósitos de depuración.
 
-The code iterates through pins 0 to 39 and attempts to set them as outputs. It prints a message indicating whether the pin was configured correctly or not.
-The code then prints the values of the pins in the displayUnidades_pins list, which is likely a reference to the displayUnidadesPins list.
-The provided code implements a state machine-based control system for a device with a countdown display, turbine, extractor, and light. The state machine manages the different operational states of the device, such as setting up the environment, waiting for user input, and playing the countdown. The code also includes functions for setting up the display, inputs, and outputs, as well as a function for displaying the countdown value on the display.
+---
+
+## 2. Asignación de Pines
+
+- **`displayUnidadesPins`**: Pines para el display de unidades.
+- **`displayDecenasPins`**: Pines para el display de decenas.
+- **`displayDecenasPins_ctl`**: Pin de control para el display de decenas.
+- **`pinsObjectsU` y `pinsObjectsD`**: Listas para almacenar objetos de los pines del display de unidades y decenas, respectivamente.
+- **`pinsObjectsD_ctl`**: Lista para almacenar el objeto del pin de control para el display de decenas.
+- **`pinTurbine`, `pinExtractor`, y `pinLigth`**: Pines para la turbina, extractor y luz, respectivamente.
+- **`pinDoorSen` y `pinButton`**: Pines para el sensor de puerta y el botón, respectivamente.
+
+---
+
+## 3. Funciones
+
+- **`setupDisplayU(pins)`**: Configura los pines para el display de unidades y almacena los objetos de los pines en la lista `pinsObjectsU`.
+- **`setupDisplayD(pins)`**: Configura los pines para el display de decenas (incluyendo el pin de control) y almacena los objetos de los pines en las listas `pinsObjectsD` y `pinsObjectsD_ctl`.
+- **`setupOutput(pin)`**: Configura un pin como salida y devuelve el objeto del pin.
+- **`setupInput(btn_pin)`**: Configura un pin como entrada con resistencia pull-up y devuelve el objeto del pin.
+- **`displayNumber(displayTensPins, displayUnitsPins, number)`**: Muestra el número dado en los displays de unidades y decenas.
+
+---
+
+## 4. Máquina de Estados
+
+La clase `StateMachine` gestiona los estados operativos del dispositivo.
+
+- **`__init__(self)`**: Inicializa la máquina de estados con el estado inicial `START`.
+- **`run(self)`**: Ejecuta la máquina de estados llamando a la función del estado actual.
+- **`state0(self)`** (Estado `START`): Configura displays, salidas e inputs.
+- **`state1(self)`** (Estado `SETTINGENV`): Muestra el valor de la cuenta regresiva y establece el estado inicial de la turbina, extractor y luz.
+- **`state2(self)`** (Estado `WAITING`): Verifica los valores de los sensores de botón y puerta; si se cumplen las condiciones, transiciona al estado `PLAYING`.
+- **`state3(self)`** (Estado `PLAYING`): Actualiza la cuenta regresiva en el display, decrementa el valor y vuelve al estado `SETTINGENV` si la cuenta llega a 0 o el sensor de puerta se activa.
+
+---
+
+## 5. Configuración de Pines
+
+El código recorre los pines del 0 al 39 e intenta configurarlos como salidas. Imprime un mensaje indicando si cada pin fue configurado correctamente o no. Luego imprime los valores de los pines en la lista `displayUnidadesPins` (probablemente una referencia a `displayUnidadesPins`).
+
+---
+
+## Resumen
+
+Este proyecto implementa un sistema de control basado en una máquina de estados para un dispositivo que utiliza displays de cuenta regresiva, turbina, extractor y luz. La máquina de estados administra los estados operativos del dispositivo, como la configuración del entorno, la espera de entrada del usuario y la ejecución de la cuenta regresiva. También se incluyen funciones para configurar el display, entradas y salidas, y para mostrar el valor de la cuenta regresiva en el display.
+
+---
+
+¡Esperamos que este código te sea útil en tu proyecto de control de dispositivos!
