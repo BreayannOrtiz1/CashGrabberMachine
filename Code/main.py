@@ -4,7 +4,7 @@ import time
 
 # GLOBAL VARIABLES
 
-countdownValue = 15  # Default value
+countdownValue = 31  # Default value
 running = False
 sleep_time = 200    #Sleep time between states
 debugTime = 300
@@ -13,12 +13,14 @@ debugTime = 300
 # PINS ASSIGNMENT
 
 displayUnidadesPins = [11,12,13,14]  # Pins for display 7 seg
-displayDecenasPins = [1,2,7,6]  # 12
+displayDecenasPins = [17,18,21,46]  #19 and 20 doesnt works
+displayDecenasPins_ctl = 3 
 pinsObjectsU = []  #List for storange pin objects
 pinsObjectsD = []
-pinTurbine = 17
-pinExtractor = 18
-pinLigth = 19
+pinsObjectsD_ctl = []
+pinTurbine = 8
+pinExtractor = 9
+pinLigth = 10
 
 pinDoorSen = 4
 pinButton = 5
@@ -34,6 +36,8 @@ def setupDisplayU(pins):
         
 
 def setupDisplayD(pins):
+    pinsObjectsD_ctl.append(machine.Pin(displayDecenasPins_ctl, machine.Pin.OUT))
+    pinsObjectsD_ctl[0].value(1)    #Display tens-zero at beginig
     for pin in pins:
         Pin_obj = machine.Pin(pin, machine.Pin.OUT)
         pinsObjectsD.append(Pin_obj)
@@ -66,8 +70,12 @@ def displayNumber(displayTensPins, displayUnitsPins, number):
     if 0 <= number < 100:
         tens = number // 10
         ones = number % 10
+        if(tens<1):
+            pinsObjectsD_ctl[0].value(0) #Off display tens-zero
+        else:
+            pinsObjectsD_ctl[0].value(1)
         # Mostrar decenas
-        for i in range(0, len(pinsObjectsD)):
+        for i in range(len(pinsObjectsD)):
             machine.Pin(displayTensPins[i], machine.Pin.OUT).value((digit_map[tens] >> i) & 1)
         #time.sleep(0.005)  # Tiempo para visualizar
         # Mostrar unidades
@@ -128,7 +136,7 @@ class StateMachine:
     def state1(self):   #-------------------------------------------READY2GO
         print("SETTINGENV")
     
-        displayNumber(displayDecenasPins, displayUnidadesPins,0)
+        displayNumber(displayDecenasPins, displayUnidadesPins,self.countDown)
         self.turbine.value(0)
         self.extractor.value(0)
         self.ligth.value(1)
@@ -166,12 +174,12 @@ maquina.run()
 
 # from machine import Pin
 
-# for i in range(0, 60):
-#     try:
-#         p = Pin(i, Pin.OUT)
-#         print(f'Pin {i} configurado correctamente.')
-#     except ValueError:
-#         print(f'Pin {i} no es válido.')
+for i in range(0, 40):
+    try:
+        p = Pin(i, Pin.OUT)
+        print(f'Pin {i} configurado correctamente.')
+    except ValueError:
+        print(f'Pin {i} no es válido.')
 
-# for i in range(0, len(displayUnidades_pins)):
-#     print(P_objects[i].value())
+for i in range(0, len(displayUnidades_pins)):
+    print(P_objects[i].value())
