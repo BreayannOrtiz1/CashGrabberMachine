@@ -4,9 +4,11 @@ import time
 
 # GLOBAL VARIABLES
 
-countdownValue = 12  # Default value
-sleep_time = 5    #Sleep time between states
-debugTime = 5
+countdownValue = 31  # Default value
+running = False
+sleep_time = 200    #Sleep time between states
+debugTime = 300
+
 
 # PINS ASSIGNMENT
 
@@ -32,18 +34,6 @@ def setupDisplayU(pins):
     for pin in pinsObjectsU:
         pin.value(0)
         
-def showValues():
-    
-    print("Display Unidades")
-    for idx in range(0, len(pinsObjectsU)):
-        print("Valor segmento_"+str(idx)+":  ")
-        print(pinsObjectsU[idx].value())
-    print("####################################")
-    print("Display Decenas")
-    for idx in range(0, len(pinsObjectsD)):
-        print("Valor segmento_"+str(idx)+":  ")
-        print(pinsObjectsD[idx].value())
-        
 
 def setupDisplayD(pins):
     pinsObjectsD_ctl.append(machine.Pin(displayDecenasPins_ctl, machine.Pin.OUT))
@@ -54,6 +44,7 @@ def setupDisplayD(pins):
     for pin in pinsObjectsD:
         pin.value(0)
     
+
 def setupOutput(pin):
     objReturn = machine.Pin(pin, machine.Pin.OUT)
     return objReturn
@@ -83,13 +74,26 @@ def displayNumber(displayTensPins, displayUnitsPins, number):
             pinsObjectsD_ctl[0].value(0) #Off display tens-zero
         else:
             pinsObjectsD_ctl[0].value(1)
-        # Tens
+        # Mostrar decenas
         for i in range(len(pinsObjectsD)):
             machine.Pin(displayTensPins[i], machine.Pin.OUT).value((digit_map[tens] >> i) & 1)
-        # Units
+        #time.sleep(0.005)  # Tiempo para visualizar
+        # Mostrar unidades
         for i in range(len(pinsObjectsU)):
             machine.Pin(displayUnitsPins[i], machine.Pin.OUT).value((digit_map[ones] >> i) & 1)
+        #time.sleep(1)  # Tiempo para visualizar
 
+# def countDown(seconds):
+#     global running
+#     running = True
+#     while seconds >= 0 and running:
+#         displayNumber(displayUnidades_pins, seconds)
+#         #display_number(display2_pins, seconds)
+#         time.sleep(1)
+#         seconds -= 1
+#     running = False
+
+#countdown(countdown_value)
 #######################################################################################
 #SATATE MACHINE
 #######################################################################################
@@ -139,44 +143,43 @@ class StateMachine:
         
         self.state = 'WAITING'  # Cambia al siguiente estado
 
-    def state2(self):   #-------------------------------------------WAITING
+    def state2(self):   #-------------------------------------------PLAYING
         print("WAITING...")
+        #print("Button: " + str(self.button.value()))
+        #print("Door Sensor: " + str(self.doorSen.value()))
 
         if( (self.button.value() == 0) and (self.doorSen.value()==1) ):
-            
+            self.state = 'PLAYING'
+            print("PLAYING")
             self.turbine.value(1)
             self.extractor.value(1)
             self.startT = time.ticks_ms() # get millisecond counter
-            self.countDown=self.countDown-1
-            displayNumber(displayDecenasPins, displayUnidadesPins, self.countDown)
-            self.state = 'PLAYING'
-            print("PLAYING")
 
-    def state3(self):   #-------------------------------------------PLAYING
+    def state3(self):   #-------------------------------------------ERROR
         
         if( (time.ticks_diff(time.ticks_ms(), self.startT)) >= 1000 ):
-            self.countDown=self.countDown-1
             displayNumber(displayDecenasPins, displayUnidadesPins, self.countDown)
             self.startT = time.ticks_ms() # get millisecond counter
-            
-            
+            self.countDown=self.countDown-1
 
         if( self.doorSen.value() == 0 or self.countDown < 0):
-            print(self.countDown)
+            time.sleep_ms(1)
             self.state = 'SETTINGENV'
             self.countDown = countdownValue
         
-#////////////////////////////////////////////////////////////////////////////////////////////        
+
+        
 maquina = StateMachine() 
 maquina.run()             
 
 # from machine import Pin
-# for i in range(0, 40):
-#     try:
-#         p = Pin(i, Pin.OUT)
-#         print(f'Pin {i} configurado correctamente.')
-#     except ValueError:
-#         print(f'Pin {i} no es válido.')
 
-# for i in range(0, len(displayUnidades_pins)):
-#     print(P_objects[i].value())
+for i in range(0, 40):
+    try:
+        p = Pin(i, Pin.OUT)
+        print(f'Pin {i} configurado correctamente.')
+    except ValueError:
+        print(f'Pin {i} no es válido.')
+
+for i in range(0, len(displayUnidades_pins)):
+    print(P_objects[i].value())
