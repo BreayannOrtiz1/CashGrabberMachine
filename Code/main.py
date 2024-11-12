@@ -1,19 +1,18 @@
 import machine # type: ignore
 import time
 
-
 # GLOBAL VARIABLES
 
-countdownValue = 12  # Default value
-sleep_time = 5    #Sleep time between states
-debugTime = 5
+countdownValue = 13     # Default value
+sleep_time = 2          # Sleep time between states          
+debugFlag=0             # To debug code
 
 # PINS ASSIGNMENT
 
-displayUnidadesPins = [11,12,13,14]  # Pins for display 7 seg
-displayDecenasPins = [17,18,21,46]  #19 and 20 doesnt works
+displayUnidadesPins = [11,12,13,14]     # Pins for display 7 seg
+displayDecenasPins = [17,18,21,46]      # 19 and 20 doesnt works
 displayDecenasPins_ctl = 3 
-pinsObjectsU = []  #List for storange pin objects
+pinsObjectsU = []                       # List for storange pin objects
 pinsObjectsD = []
 pinsObjectsD_ctl = []
 pinTurbine = 8
@@ -32,8 +31,7 @@ def setupDisplayU(pins):
     for pin in pinsObjectsU:
         pin.value(0)
         
-def showValues():
-    
+def showValues():               #Funtion to debug, no use in production
     print("Display Unidades")
     for idx in range(0, len(pinsObjectsU)):
         print("Valor segmento_"+str(idx)+":  ")
@@ -44,7 +42,6 @@ def showValues():
         print("Valor segmento_"+str(idx)+":  ")
         print(pinsObjectsD[idx].value())
         
-
 def setupDisplayD(pins):
     pinsObjectsD_ctl.append(machine.Pin(displayDecenasPins_ctl, machine.Pin.OUT))
     pinsObjectsD_ctl[0].value(1)    #Display tens-zero at beginig
@@ -59,11 +56,12 @@ def setupOutput(pin):
     return objReturn
 
 def setupInput(btn_pin):
-    button = machine.Pin(btn_pin, machine.Pin.IN, machine.Pin.PULL_UP)
-    return button
+    objReturn = machine.Pin(btn_pin, machine.Pin.IN, machine.Pin.PULL_UP)
+    return objReturn
 
-def displayNumber(displayTensPins, displayUnitsPins, number):
-    print("CountDown: "+str(number))
+def displayNumber(number):
+    if debugFlag > 0: print("CountDown: "+str(number)) 
+       
     digit_map = [
         0b0000,  # 0
         0b0001,  # 1
@@ -85,10 +83,10 @@ def displayNumber(displayTensPins, displayUnitsPins, number):
             pinsObjectsD_ctl[0].value(1)
         # Tens
         for i in range(len(pinsObjectsD)):
-            machine.Pin(displayTensPins[i], machine.Pin.OUT).value((digit_map[tens] >> i) & 1)
+            pinsObjectsD[i].value((digit_map[tens] >> i) & 1)
         # Units
         for i in range(len(pinsObjectsU)):
-            machine.Pin(displayUnitsPins[i], machine.Pin.OUT).value((digit_map[ones] >> i) & 1)
+            pinsObjectsU[i].value((digit_map[ones] >> i) & 1)
 
 #######################################################################################
 #SATATE MACHINE
@@ -114,7 +112,7 @@ class StateMachine:
             estados[self.state]()  # Llama a la función del estado actual
 
     def state0(self):   #-------------------------------------------START
-        print("START")
+        if debugFlag > 0: print("START")
         #GENERAL SETTINGS
         setupDisplayU(displayUnidadesPins)  #Make espesific pins outputs
         setupDisplayD(displayDecenasPins)
@@ -122,7 +120,7 @@ class StateMachine:
         self.extractor=setupOutput(pinExtractor)
         self.ligth=setupOutput(pinLigth)
 
-        self.button=setupInput(pinButton) #Make button_pin input
+        self.button=setupInput(pinButton)   #Make button_pin input
         self.doorSen=setupInput(pinDoorSen)
 
         time.sleep_ms(sleep_time)
@@ -130,9 +128,9 @@ class StateMachine:
         self.state = 'SETTINGENV'
 
     def state1(self):   #-------------------------------------------READY2GO
-        print("SETTINGENV")
+        if debugFlag > 0: print("SETTINGENV")
     
-        displayNumber(displayDecenasPins, displayUnidadesPins,self.countDown)
+        displayNumber(self.countDown)
         self.turbine.value(0)
         self.extractor.value(0)
         self.ligth.value(1)
@@ -140,7 +138,7 @@ class StateMachine:
         self.state = 'WAITING'  # Cambia al siguiente estado
 
     def state2(self):   #-------------------------------------------WAITING
-        print("WAITING...")
+        if debugFlag > 0: print("WAITING...")
 
         if( (self.button.value() == 0) and (self.doorSen.value()==1) ):
             
@@ -148,21 +146,19 @@ class StateMachine:
             self.extractor.value(1)
             self.startT = time.ticks_ms() # get millisecond counter
             self.countDown=self.countDown-1
-            displayNumber(displayDecenasPins, displayUnidadesPins, self.countDown)
+            if debugFlag > 0: print("PLAYING")
+            displayNumber(self.countDown)
             self.state = 'PLAYING'
-            print("PLAYING")
-
+            
     def state3(self):   #-------------------------------------------PLAYING
         
         if( (time.ticks_diff(time.ticks_ms(), self.startT)) >= 1000 ):
             self.countDown=self.countDown-1
-            displayNumber(displayDecenasPins, displayUnidadesPins, self.countDown)
+            displayNumber(self.countDown)
             self.startT = time.ticks_ms() # get millisecond counter
-            
-            
 
         if( self.doorSen.value() == 0 or self.countDown < 0):
-            print(self.countDown)
+            if debugFlag > 0: print(self.countDown)
             self.state = 'SETTINGENV'
             self.countDown = countdownValue
         
