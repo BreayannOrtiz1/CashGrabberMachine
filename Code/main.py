@@ -3,10 +3,12 @@ import time
 
 # GLOBAL VARIABLES
 
-countdownValue = 19      # Default value
+countdownValue = 2      # Default value
 sleep_time = 1          # Sleep time between states          
 debugFlag=0             # To debug code
-ledBFreq = 500         #ms
+ledBFreq = 250          #ms
+LigthFreq = 250
+CountLigth_G = 4        #Count on/off ligth
 
 # PINS ASSIGNMENT
 
@@ -101,20 +103,22 @@ class StateMachine:
         self.countDown = countdownValue
         self.button = 0
         self.doorSen= 0
-        self.startT = time.ticks_ms() # get millisecond counter, opcional
+        self.CountLigth = CountLigth_G
+        self.startT = time.ticks_ms()       # get millisecond counter, opcional
+        self.timerLedB = time.ticks_ms()    # get millisecond counter
+        self.timerLigth = time.ticks_ms()   # get millisecond counter
         self.FlagLedB = 0
 
     def run(self):
         # Map states to functions (methods)
         estados = {
-            'START':    self.state0,
-            'SETTINGENV': self.state1,
-            'WAITING':  self.state2,
-            'PLAYING':  self.state3,
+            'START':        self.state0,
+            'SETTINGENV':   self.state1,
+            'WAITING':      self.state2,
+            'PLAYING':      self.state3,
         }
-        self.timerLedB = time.ticks_ms() # get millisecond counter
         while True:
-            if( (time.ticks_diff(time.ticks_ms(), self.timerLedB)) >= ledBFreq and self.FlagLedB):
+            if((time.ticks_diff(time.ticks_ms(), self.timerLedB)) >= ledBFreq and self.FlagLedB):
                 self.timerLedB = time.ticks_ms()
                 if(self.LedB.value()):
                     self.LedB.value(0)
@@ -130,9 +134,8 @@ class StateMachine:
         self.turbine=setupOutput(pinTurbine)
         self.extractor=setupOutput(pinExtractor)
         self.ligth=setupOutput(pinLigth)
-        self.ligth.value(0)
         self.LedB=setupOutput(pinLedButton)
-        self.LedB.value(0)
+        
 
         self.button=setupInput(pinButton)   #Make button_pin input
         self.doorSen=setupInput(pinDoorSen)
@@ -145,8 +148,11 @@ class StateMachine:
         if debugFlag > 0: print("SETTINGENV")
         self.FlagLedB = 0
         displayNumber(self.countDown)
-        self.turbine.value(1)
-        self.extractor.value(1)
+        self.turbine.value(1)   #OFF
+        self.extractor.value(1) #OFF
+        self.LedB.value(0)      #ON
+        self.ligth.value(0)     #ON
+        self.CountLigth = CountLigth_G
         #self.ligth.value(0)
         
         self.state = 'WAITING'  # Cambia al siguiente estado
@@ -154,10 +160,10 @@ class StateMachine:
     def state2(self):   #-------------------------------------------WAITING
         if debugFlag > 0: print("WAITING...")
 
-        if( (self.button.value() == 0) and (self.doorSen.value()==1) ):
-            self.turbine.value(1)
-            self.extractor.value(1)
-            self.startT = time.ticks_ms() # get millisecond counter
+        if((self.button.value() == 0) and (self.doorSen.value()==0)):
+            self.turbine.value(0)   #ON
+            self.extractor.value(0) #ON
+            self.startT = time.ticks_ms()   #Get millisecond counter
             self.countDown=self.countDown-1
             if debugFlag > 0: print("PLAYING")
             displayNumber(self.countDown)
@@ -165,13 +171,25 @@ class StateMachine:
             
     def state3(self):   #-------------------------------------------PLAYING
         
+        if((time.ticks_diff(time.ticks_ms(), self.timerLigth)) >= LigthFreq and self.CountLigth):
+                self.timerLigth = time.ticks_ms()
+                self.CountLigth = self.CountLigth-1
+                if(self.ligth.value()):
+                    self.ligth.value(0)
+                else:
+                    self.ligth.value(1)
+                if(self.CountLigth == 0):
+                    self.ligth.value(0) #Set to ON
+
         if( (time.ticks_diff(time.ticks_ms(), self.startT)) >= 1000 ):
             self.countDown=self.countDown-1
             self.FlagLedB = 1
             displayNumber(self.countDown)
+            self.turbine.value(0)   #ON
+            self.extractor.value(0) #ON
             self.startT = time.ticks_ms() # get millisecond counter
 
-        if( self.doorSen.value() == 0 or self.countDown < 0):
+        if( self.doorSen.value() == 1 or self.countDown < 0):
             if debugFlag > 0: print(self.countDown)
             self.state = 'SETTINGENV'
             self.countDown = countdownValue
